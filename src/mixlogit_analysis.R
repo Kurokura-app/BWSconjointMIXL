@@ -36,7 +36,7 @@ print(names(df))
 df$choice_id <- paste(df$ID, df$task, df$type, sep="_")
 
 # Prepare attributes for the model
-# Define attribute columns (exclude ID, cluster_id, task, prof_id, alt, choice, type, choice_id)
+# Define attribute columns (exclude ID, cluster_id, task, prof_id, alt, choice, type, choice_id, project_research, cobenefit_none)
 attribute_cols <- c(
   "project_forest",
   "project_sea_grass",
@@ -46,6 +46,7 @@ attribute_cols <- c(
   "fores_safe",
   "sea_promo",
   "sea_safe",
+  "research",
   "price"
 )
 
@@ -75,10 +76,12 @@ cat("Choices:", nrow(mlogit_data) / 4, "\n")  # 4 alternatives per choice
 cat("\n=== ESTIMATING MIXED LOGIT MODEL ===\n")
 cat("Random parameters: project_forest, project_sea_grass, cobenefit_promotion,\n")
 cat("                   cobenefit_safety, fores_promo, fores_safe, sea_promo, sea_safe\n")
-cat("Fixed parameters: price, research (not included in current model)\n")
+cat("Fixed parameters: price, research\n")
 
 # Model formula
-# Note: research is not included as it's only for experimental design
+# Random parameters: project_forest, project_sea_grass, cobenefit_promotion, cobenefit_safety, 
+#                    fores_promo, fores_safe, sea_promo, sea_safe
+# Fixed parameters: research, price
 formula_mixlogit <- choice ~ 
   project_forest + 
   project_sea_grass + 
@@ -88,10 +91,11 @@ formula_mixlogit <- choice ~
   fores_safe + 
   sea_promo + 
   sea_safe + 
+  research +
   price
 
 # Estimate mixed logit model
-# Random parameters: normal distribution (except price - fixed)
+# Random parameters: normal distribution (research and price are fixed)
 mixlogit_model <- mlogit(
   formula_mixlogit,
   data = mlogit_data,
@@ -365,8 +369,8 @@ cat("=" %*% 70, "\n")
 cat("\nOutput files saved in 'results/' directory:\n")
 cat("  1. overall_coefficients.csv - Overall model coefficients\n")
 cat("  2. overall_wtp.csv - Overall WTP estimates\n")
-cat("  3. individual_coefficients.csv - Individual-level coefficients (100 respondents)\n")
-cat("  4. individual_wtp.csv - Individual-level WTP estimates (100 respondents)\n")
+cat("  3. individual_coefficients.csv - Individual-level coefficients\n")
+cat("  4. individual_wtp.csv - Individual-level WTP estimates\n")
 cat("  5. wtp_summary_statistics.csv - Summary statistics of individual WTP\n")
 cat("  6. wtp_distribution_boxplot.png - Visualization of WTP distribution\n")
 cat("  7. wtp_mean_barplot.png - Mean WTP by attribute\n")
@@ -374,8 +378,14 @@ cat("\n")
 cat("Model Specification:\n")
 cat("  - Random parameters (8): project_forest, project_sea_grass, cobenefit_promotion,\n")
 cat("                           cobenefit_safety, fores_promo, fores_safe, sea_promo, sea_safe\n")
-cat("  - Fixed parameters (1): price\n")
+cat("  - Fixed parameters (2): research, price\n")
 cat("  - Distribution: Normal for all random parameters\n")
 cat("  - Sample size: ", length(unique(df$ID)), " respondents\n")
 cat("  - Observations: ", nrow(df), " choice situations\n")
+cat("\n")
+cat("Data Processing:\n")
+cat("  - BEST tasks: 1-13\n")
+cat("  - WORST tasks: 101-113 (task = WORST_task + 100)\n")
+cat("  - WORST attributes: Already negated in data\n")
+cat("  - Excluded columns: project_research, cobenefit_none\n")
 cat("\n")
